@@ -1,0 +1,14 @@
+## Interface: 60100
+## Version: 6.0.3
+## Title: |cff64b4ffFrom Scratch|r Cooldowns
+## Notes: Raid cooldowns tracker
+## Author: Blash
+## SavedVariables: FSCooldownsSettings
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibGroupInSpecT-1.1\LibGroupInSpecT-1.1.lua
+Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
+
+FS_Cooldowns.lua
