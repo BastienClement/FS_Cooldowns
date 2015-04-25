@@ -614,27 +614,32 @@ function FSCD:RemoveDisplayGroup(name, leave_config)
 end
 
 function FSCD:PlayerHasCooldown(player, spell)
-	if spell.spec ~= nil then
+	if spell.class and player.class_id ~= spell.class then
+		return false
+	end
+	
+	local function spec_match()
 		if type(spell.spec) == "table" then
 			for _, spec in pairs(spell.spec) do
 				if spec == player.global_spec_id then
 					return true
 				end
 			end
-		else
-			if spell.spec == player.global_spec_id then
-				return true
-			else
-				return false
-			end
+		elseif spell.spec == player.global_spec_id then
+			return true
 		end
+		return false
 	end
 	
-	if spell.talent then
-		return player.talents[spell.talent]
+	if spell.spec and not spec_match() then
+		return false
 	end
 	
-	return player.class_id == spell.class
+	if spell.talent and not player.talents[spell.talent] then
+		return false
+	end
+	
+	return true
 end
 
 function FSCD:CreatePlayerCooldown(player, cooldown, id)
