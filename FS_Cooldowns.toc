@@ -4,11 +4,19 @@
 ## Notes: Raid cooldowns tracker
 ## Author: Blash
 ## SavedVariables: FSCooldownsSettings
+## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibGroupInSpecT-1.1, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets
 
-Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-Libs\LibGroupInSpecT-1.1\LibGroupInSpecT-1.1.lua
-Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
-Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
+#@no-lib-strip@
+LibStub\LibStub.lua
+CallbackHandler-1.0\CallbackHandler-1.0.lua
+AceAddon-3.0\AceAddon-3.0.xml
+AceEvent-3.0\AceEvent-3.0.xml
+AceConsole-3.0\AceConsole-3.0.xml
+AceConfig-3.0\AceConfig-3.0.xml
+AceDBOptions-3.0\AceDBOptions-3.0.xml
+LibGroupInSpecT-1.1\LibGroupInSpecT-1.1.lua
+LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+AceGUI-3.0-SharedMediaWidgets\widget.xml
+#@end-no-lib-strip@
 
 FS_Cooldowns.lua
