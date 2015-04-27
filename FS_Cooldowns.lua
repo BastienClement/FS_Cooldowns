@@ -544,29 +544,22 @@ function FSCD:CreateDisplayGroup(name)
 	
 	for _, id in ipairs(cooldowns_list) do
 		local spell, _, icon = GetSpellInfo(id)
-		local cd_data = cooldowns[id]
-		
-		group.args["Spell" .. id] = {
-			order = 1000 + cd_data.order * 10,
-			name = "|T" .. icon .. ":21|t |cff" .. class_colors[cd_data.class][4] .. spell .. "|h|r",
-			desc = GetSpellDescription(id) .. "\n|cff999999" .. id .. "|r",
-			type = "toggle",
-			get = function()
-				return settings.groups[name].cooldowns[id]
-			end,
-			set = function(_, enabled)
-				settings.groups[name].cooldowns[id] = enabled and true or nil
-				FSCD:RebuildDisplay(name)
-			end
-		}
-		
-		--[[
-		group.args["Spell" .. id .. "Desc"] = {
-			order = 1001 + cd_data.order * 10,
-			name = GetSpellDescription(id) .. "\n",
-			type = "description"
-		}
-		]]
+		if spell then
+			local cd_data = cooldowns[id]
+			group.args["Spell" .. id] = {
+				order = 1000 + cd_data.order * 10,
+				name = "|T" .. icon .. ":21|t |cff" .. class_colors[cd_data.class][4] .. spell .. "|h|r",
+				desc = GetSpellDescription(id) .. "\n|cff999999" .. id .. "|r",
+				type = "toggle",
+				get = function()
+					return settings.groups[name].cooldowns[id]
+				end,
+				set = function(_, enabled)
+					settings.groups[name].cooldowns[id] = enabled and true or nil
+					FSCD:RebuildDisplay(name)
+				end
+			}
+		end
 	end
 	
 	config.args.groups.args[name] = group
