@@ -177,7 +177,7 @@ local cooldowns = {
 		class = 7,
 		order = getOrder()
 	},
-	[114049] = { -- Ascendance
+	[114052] = { -- Ascendance
 		cooldown = 180,
 		duration = 15,
 		spec = 264,
