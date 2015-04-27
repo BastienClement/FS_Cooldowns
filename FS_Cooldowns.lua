@@ -186,7 +186,7 @@ local cooldowns = {
 	},
 	[8143] = { -- Tremor Totem
 		cooldown = 60,
-		duration = 6,
+		duration = 10,
 		class = 7,
 		order = getOrder()
 	},
