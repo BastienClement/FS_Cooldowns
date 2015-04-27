@@ -549,7 +549,7 @@ function FSCD:CreateDisplayGroup(name)
 		group.args["Spell" .. id] = {
 			order = 1000 + cd_data.order * 10,
 			name = "|T" .. icon .. ":21|t |cff" .. class_colors[cd_data.class][4] .. spell .. "|h|r",
-			desc = GetSpellDescription(id),
+			desc = GetSpellDescription(id) .. "\n|cff999999" .. id .. "|r",
 			type = "toggle",
 			get = function()
 				return settings.groups[name].cooldowns[id]
