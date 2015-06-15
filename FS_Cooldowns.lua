@@ -146,7 +146,7 @@ local cooldowns = {
 		class = 11,
 		order = getOrder()
 	},
-	[77761] = { -- Stampeding Roar
+	[106898] = { -- Stampeding Roar
 		cooldown = 120,
 		duration = 8,
 		class = 11,
