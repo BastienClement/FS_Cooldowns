@@ -1,5 +1,5 @@
 local LGIST = LibStub:GetLibrary("LibGroupInSpecT-1.1")
-local FSCD  = LibStub("AceAddon-3.0"):NewAddon("FSCooldowns", "AceEvent-3.0", "AceConsole-3.0")
+local FSCD  = LibStub("AceAddon-3.0"):NewAddon("FSCooldowns", "AceEvent-3.0", "AceConsole-3.0", "AceComm-3.0")
 local Media = LibStub("LibSharedMedia-3.0")
 
 --------------------------------------------------------------------------------
@@ -66,6 +66,15 @@ local cooldowns = {
 	[31821] = { -- Devotion Aura
 		cooldown = 180,
 		duration = 6,
+		spec = 65,
+		class = 2,
+		order = getOrder()
+	},
+	[31842] = { -- Avenging Wrath (Holy)
+		cooldown = 180,
+		duration = function(player)
+			return player.talents[17599] and 30 or 20
+		end,
 		spec = 65,
 		class = 2,
 		order = getOrder()
@@ -351,6 +360,8 @@ function FSCD:OnInitialize()
 	
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("ENCOUNTER_END")
+	
+	self:RegisterComm("FSCD", "OnCommReceived")
 	
 	C_Timer.NewTicker(2, function()
 		local one_changed = false
@@ -702,7 +713,7 @@ function FSCD:CreateCooldownIcon(anchor, id)
 		if glow and not glowing then
 			glowing = true
 			ActionButton_ShowOverlayGlow(icon);
-		elseif glowing then
+		elseif not glow and glowing then
 			glowing = false
 			ActionButton_HideOverlayGlow(icon);
 		end
@@ -1107,9 +1118,39 @@ local function handleCharge(cd)
 	end
 end
 
+function FSCD:OnCommReceived(chan, data)
+	if chan ~= "FSCD" then return end
+	
+	local action, id, owner, updated = data:match("(.*):(.*):(.*):(.*)")
+	id, updated = tonumber(id), tonumber(updated)
+	
+	if action == "1" then
+		local instances = cooldowns_idx[id]
+		if instances then
+			for _, cd in ipairs(instances) do
+				if cd.player.guid == owner then
+					local now = GetTime()
+					cd.cooldown = now + updated
+					if cd.timer then cd.timer:Cancel() end
+					cd.timer = C_Timer.NewTimer(cd.cooldown - now, handleCharge(cd))
+					FSCD:RefreshCooldown(cd.id)
+					return
+				end
+			end
+		end
+	end
+end
+
+function FSCD:AdjustCD(id, owner, cooldown)
+	self:SendCommMessage("FSCD", "1:" .. id .. ":" .. owner .. ":" .. cooldown, "RAID")
+	self:SendCommMessage("FSCD", "1:" .. id .. ":" .. owner .. ":" .. cooldown, "GUILD")
+end
+
+local PLAYER_GUID = UnitGUID("player")
 function FSCD:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, _, source, _, _, dest, _, _, _, _, id)
 	if event == "SPELL_CAST_SUCCESS" then
 		local instances = cooldowns_idx[id]
+		
 		if instances then
 			for _, cd in ipairs(instances) do
 				if cd.player.guid == source then
@@ -1130,6 +1171,16 @@ function FSCD:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, _, source, _, _, dest, _,
 					end)
 					
 					FSCD:RefreshCooldown(cd.id)
+					
+					-- Special AW handling
+					if source == PLAYER_GUID and id == 31842 then
+						if select(4, GetGlyphSocketInfo(2)) == 162604
+						or select(4, GetGlyphSocketInfo(4)) == 162604
+						or select(4, GetGlyphSocketInfo(6)) == 162604 then
+							self:AdjustCD(cd.id, source, 90)
+						end
+					end
+					
 					return
 				end
 			end
@@ -1150,5 +1201,3 @@ function FSCD:ENCOUNTER_END()
 		end
 	end
 end
-
-foo = function() FSCD:ENCOUNTER_END() end
