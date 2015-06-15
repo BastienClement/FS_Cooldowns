@@ -235,6 +235,12 @@ local cooldowns = {
 		class = 6,
 		order = getOrder()
 	},
+	[108199] = { -- Gorefiend's Grasp
+		cooldown = 60,
+		talent = 19230,
+		class = 6,
+		order = getOrder()
+	},
 -- Warrior
 	[97462] = { -- Rallying Cry
 		cooldown = 180,
