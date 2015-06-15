@@ -1149,7 +1149,6 @@ end
 
 function FSCD:AdjustCD(id, owner, cooldown)
 	self:SendCommMessage("FSCD", "1:" .. id .. ":" .. owner .. ":" .. cooldown, "RAID")
-	self:SendCommMessage("FSCD", "1:" .. id .. ":" .. owner .. ":" .. cooldown, "GUILD")
 end
 
 local PLAYER_GUID = UnitGUID("player")
