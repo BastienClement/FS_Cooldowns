@@ -70,6 +70,7 @@ local cooldowns = {
 		class = 2,
 		order = getOrder()
 	},
+	--[[
 	[31842] = { -- Avenging Wrath (Holy)
 		cooldown = 180,
 		duration = function(player)
@@ -78,7 +79,7 @@ local cooldowns = {
 		spec = 65,
 		class = 2,
 		order = getOrder()
-	},
+	},]]
 	[6940] = { -- Hand of Sacrifice
 		cooldown = 120,
 		duration = 12,
