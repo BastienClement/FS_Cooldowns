@@ -372,13 +372,13 @@ function FSCD:OnInitialize()
 	
 	C_Timer.NewTicker(2, function()
 		local one_changed = false
-		for lku, available in pairs(players_available) do
-			if not UnitExists(lku) then
-				players_available[lku] = nil
+		for name, available in pairs(players_available) do
+			if not UnitExists(name) then
+				players_available[name] = nil
 			else
-				local a = UnitIsVisible(lku) and not UnitIsDeadOrGhost(lku)
+				local a = UnitIsVisible(name) and not UnitIsDeadOrGhost(name)
 				if a ~= available then
-					players_available[lku] = a
+					players_available[name] = a
 					one_changed = true
 				end
 			end
@@ -841,7 +841,7 @@ function FSCD:CreateCooldownBar(icon, group)
 			color_ratio = 2
 			animating = true
 			animate_duration = true
-		elseif not players_available[cd.player.lku] then
+		elseif not players_available[cd.player.name] then
 			color_ratio = 0.2
 			wrapper:SetAlpha(0.4)
 		elseif cd.cooldown > GetTime() then
@@ -1000,8 +1000,8 @@ local function sortCooldowns(a, b)
 		if aActive then
 			return a.duration < b.duration
 		else
-			local paAvail = players_available[a.player.lku]
-			local pbAvail = players_available[b.player.lku]
+			local paAvail = players_available[a.player.name]
+			local pbAvail = players_available[b.player.name]
 			
 			if paAvail ~= pbAvail then
 				return paAvail
@@ -1091,7 +1091,7 @@ function FSCD:RosterUpdate(_, guid, _, player)
 	rpl.player = player
 	roster[guid] = rpl
 	
-	players_available[player.lku] = true
+	players_available[player.name] = true
 	
 	self:RebuildIndex()
 	self:RebuildAllDisplays()
