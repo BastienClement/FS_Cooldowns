@@ -1091,6 +1091,10 @@ function FSCD:RosterUpdate(_, guid, _, player)
 	rpl.player = player
 	roster[guid] = rpl
 	
+	if not player.name then
+		player.name = player.lku
+	end
+	
 	players_available[player.name] = true
 	
 	self:RebuildIndex()
