@@ -264,12 +264,13 @@ local cooldowns = {
 		order = getOrder()
 	},
 -- Mage
+	--[[
 	[159916] = { -- Amplify Magic
 		cooldown = 120,
 		duration = 6,
 		class = 8,
 		order = getOrder()
-	},
+	},]]
 -- Rogue
 	[76577] = { -- Smoke Bomb
 		cooldown = 180,
@@ -278,12 +279,13 @@ local cooldowns = {
 		order = getOrder()
 	},
 -- Hunter
+	--[[
 	[172106] = { -- Aspect of the Fox
 		cooldown = 180,
 		duration = 6,
 		class = 3,
 		order = getOrder()
-	},
+	},]]
 }
 
 --------------------------------------------------------------------------------
