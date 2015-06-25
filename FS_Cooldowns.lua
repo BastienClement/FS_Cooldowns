@@ -324,6 +324,8 @@ local defaults = {
 				texture = "Blizzard",
 				missing = true,
 				charges = true,
+				limit = false,
+				limit_nb = 3,
 				cooldowns = {},
 				unlocked = false
 			}
@@ -560,7 +562,7 @@ function FSCD:CreateDisplayGroup(name)
 			},
 			missingDesc = {
 				order = 22,
-				name = "Display cooldown icon even if nobody in the group can use it",
+				name = "Display cooldown icon even if nobody in the group can cast it\n",
 				type = "description"
 			},
 			charges = {
@@ -576,7 +578,37 @@ function FSCD:CreateDisplayGroup(name)
 			},
 			chargesDesc = {
 				order = 24,
-				name = "Display charges count next to the player's name if more than one charge of the cooldown is available",
+				name = "Display charges count next to the player's name if more than one charge of the cooldown is available\n",
+				type = "description"
+			},
+			limit = {
+				order = 25,
+				name = "Limit number of visible cooldowns",
+				type = "toggle",
+				width = "full",
+				get = function() return settings.groups[name].limit end,
+				set = function(_, value)
+					settings.groups[name].limit = value
+					FSCD:RebuildDisplay(name)
+				end
+			},
+			limit_nb = {
+				order = 26,
+				name = "Limit",
+				min = 1,
+				max = 10,
+				type = "range",
+				step = 1,
+				hidden = function() return not settings.groups[name].limit end,
+				get = function() return settings.groups[name].limit_nb end,
+				set = function(_, value)
+					settings.groups[name].limit_nb = value
+					FSCD:RebuildDisplay(name)
+				end
+			},
+			limitDesc = {
+				order = 27,
+				name = "Limit the number of visible cooldowns at any one time, for each spell",
 				type = "description"
 			},
 			voidx = {
@@ -1015,6 +1047,10 @@ function FSCD:RebuildDisplay(name)
 					icon.bars_count = icon.bars_count + 1
 					
 					last_bar = bar
+					
+					if group.limit and icon.bars_count == group.limit_nb then
+						break
+					end
 				end
 			end
 			
