@@ -1,5 +1,4 @@
-## Interface: 60100
-## Version: 6.0.3
+## Interface: 60200
 ## Title: |cff64b4ffFrom Scratch|r Cooldowns
 ## Notes: Raid cooldowns tracker
 ## Author: Blash
