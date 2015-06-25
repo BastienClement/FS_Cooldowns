@@ -149,16 +149,17 @@ local cooldowns = {
 		class = 11,
 		order = getOrder()
 	},
+	[33891] = { -- Incarnation: Tree of Life
+		cooldown = 180,
+		duration = 30,
+		talent = 21707,
+		class = 11,
+		order = getOrder()
+	},
 	[102342] = { -- Ironbark
 		cooldown = 60,
 		duration = 12,
 		spec = 105,
-		class = 11,
-		order = getOrder()
-	},
-	[106898] = { -- Stampeding Roar
-		cooldown = 120,
-		duration = 8,
 		class = 11,
 		order = getOrder()
 	},
@@ -169,20 +170,26 @@ local cooldowns = {
 		class = 11,
 		order = getOrder()
 	},
+	[106898] = { -- Stampeding Roar
+		cooldown = 120,
+		duration = 8,
+		class = 11,
+		order = getOrder()
+	},
 -- Shaman
+	[108280] = { -- Healing Tide Totem
+		cooldown = 180,
+		duration = 10,
+		spec = 264,
+		class = 7,
+		order = getOrder()
+	},
 	[98008] = { -- Spirit Link Totem
 		cooldown = 180,
 		duration = 6,
 		charges = function(player)
 			return player.talents[19273] and 2 or 1
 		end,
-		spec = 264,
-		class = 7,
-		order = getOrder()
-	},
-	[108280] = { -- Healing Tide Totem
-		cooldown = 180,
-		duration = 10,
 		spec = 264,
 		class = 7,
 		order = getOrder()
