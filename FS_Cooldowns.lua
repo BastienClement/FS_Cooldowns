@@ -216,15 +216,15 @@ local cooldowns = {
 		order = getOrder()
 	},
  -- Monk
-	[116849] = { -- Life Cocoon
-		cooldown = 100,
-		duration = 12,
+	[115310] = { -- Revival
+		cooldown = 180,
 		spec = 270,
 		class = 10,
 		order = getOrder()
 	},
-	[115310] = { -- Revival
-		cooldown = 180,
+	[116849] = { -- Life Cocoon
+		cooldown = 100,
+		duration = 12,
 		spec = 270,
 		class = 10,
 		order = getOrder()
@@ -1286,7 +1286,7 @@ end
 
 function FSCD:ENCOUNTER_END()
 	for id, instances in pairs(cooldowns_idx) do
-		if cooldowns[id].cooldown >= 180 then
+		if cooldowns[id]:Evaluate("cooldown", 0) >= 180 then
 			for i, cd in ipairs(instances) do
 				cd.used = 0
 				cd.cast = 0
