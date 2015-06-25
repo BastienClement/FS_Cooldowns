@@ -318,6 +318,8 @@ local defaults = {
 				size = 24,
 				border = 1,
 				spacing = 2,
+				width = 100,
+				height = 15,
 				attach = "LEFTDOWN",
 				texture = "Blizzard",
 				missing = true,
@@ -394,6 +396,8 @@ function FSCD:OnInitialize()
 	for name in pairs(settings.groups) do
 		self:CreateDisplayGroup(name)
 	end
+	
+	self:RebuildAllDisplays()
 end
 
 function FSCD:OnProfileChanged()
@@ -470,8 +474,34 @@ function FSCD:CreateDisplayGroup(name)
 					FSCD:RebuildDisplay(name)
 				end
 			},
-			spacing = {
+			width = {
 				order = 12,
+				name = "Bar width",
+				min = 50,
+				max = 200,
+				type = "range",
+				step = 1,
+				get = function() return settings.groups[name].width end,
+				set = function(_, value)
+					settings.groups[name].width = value
+					FSCD:RebuildDisplay(name)
+				end
+			},
+			height = {
+				order = 13,
+				name = "Bar height",
+				min = 10,
+				max = 50,
+				type = "range",
+				step = 1,
+				get = function() return settings.groups[name].height end,
+				set = function(_, value)
+					settings.groups[name].height = value
+					FSCD:RebuildDisplay(name)
+				end
+			},
+			spacing = {
+				order = 14,
 				name = "Spacing",
 				min = 0,
 				max = 50,
@@ -484,7 +514,7 @@ function FSCD:CreateDisplayGroup(name)
 				end
 			},
 			attach = {
-				order = 13,
+				order = 15,
 				name = "Attach - Grow",
 				type = "select",
 				values = {
@@ -500,7 +530,7 @@ function FSCD:CreateDisplayGroup(name)
 				end
 			},
 			texture = {
-				order = 14,
+				order = 16,
 				name = "Texture",
 				type = "select",
 				width = "double",
@@ -916,7 +946,7 @@ function FSCD:RebuildDisplay(name)
 			icon.cd:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -group.border, group.border)
 			
 			if last_icon then
-				local bars_height = (last_icon.bars_count * 17) - 2
+				local bars_height = (last_icon.bars_count * (group.height + 2)) - 2
 				local overflow = (bars_height > group.size) and bars_height - group.size or 0
 				
 				if group.attach == "LEFTUP" or group.attach == "RIGHTUP" then
@@ -940,6 +970,7 @@ function FSCD:RebuildDisplay(name)
 			local available = false
 			
 			icon.bars_count = 0
+			local last_bar
 			if cooldowns_idx[id] then
 				for i, data in ipairs(cooldowns_idx[id]) do
 					if not icon.bars[i] then
@@ -947,18 +978,26 @@ function FSCD:RebuildDisplay(name)
 					end
 					
 					local bar = icon.bars[i]
-					bar:SetWidth(100)
-					bar:SetHeight(15)
+					bar:SetWidth(group.width)
+					bar:SetHeight(group.height)
 					
 					bar:ClearAllPoints()
-					if group.attach == "RIGHTUP" then
-						bar:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT", -math.min(5, group.spacing), (i - 1) * 17)
-					elseif group.attach == "RIGHTDOWN" then
-						bar:SetPoint("TOPRIGHT", icon, "TOPLEFT", -math.min(5, group.spacing), (1 - i) * 17)
-					elseif group.attach == "LEFTUP" then
-						bar:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", math.min(5, group.spacing), (i -1) * 17)
+					if not last_bar then
+						if group.attach == "RIGHTUP" then
+							bar:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT", -math.min(5, group.spacing), 0)
+						elseif group.attach == "RIGHTDOWN" then
+							bar:SetPoint("TOPRIGHT", icon, "TOPLEFT", -math.min(5, group.spacing), 0)
+						elseif group.attach == "LEFTUP" then
+							bar:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", math.min(5, group.spacing), 0)
+						else
+							bar:SetPoint("TOPLEFT", icon, "TOPRIGHT", math.min(5, group.spacing), 0)
+						end
 					else
-						bar:SetPoint("TOPLEFT", icon, "TOPRIGHT", math.min(5, group.spacing), (1 - i) * 17)
+						if group.attach == "LEFTUP" or group.attach == "RIGHTUP" then
+							bar:SetPoint("BOTTOMLEFT", last_bar, "TOPLEFT", 0, 2)
+						else
+							bar:SetPoint("TOPLEFT", last_bar, "BOTTOMLEFT", 0, -2)
+						end
 					end
 					
 					bar.bar:SetStatusBarTexture(Media:Fetch("statusbar", group.texture))
@@ -967,6 +1006,8 @@ function FSCD:RebuildDisplay(name)
 					
 					available = true
 					icon.bars_count = icon.bars_count + 1
+					
+					last_bar = bar
 				end
 			end
 			
