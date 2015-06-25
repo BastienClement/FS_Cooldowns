@@ -322,6 +322,8 @@ local defaults = {
 				height = 15,
 				attach = "LEFTDOWN",
 				texture = "Blizzard",
+				font = "Friz Quadrata TT",
+				font_size = 11,
 				missing = true,
 				charges = true,
 				limit = false,
@@ -531,8 +533,33 @@ function FSCD:CreateDisplayGroup(name)
 					FSCD:RebuildDisplay(name)
 				end
 			},
-			texture = {
+			font_size = {
 				order = 16,
+				name = "Font size",
+				min = 5,
+				max = 30,
+				type = "range",
+				step = 1,
+				get = function() return settings.groups[name].font_size end,
+				set = function(_, value)
+					settings.groups[name].font_size = value
+					FSCD:RebuildDisplay(name)
+				end
+			},
+			font = {
+				order = 17,
+				name = "Font",
+				type = "select",
+				dialogControl = "LSM30_Font",
+				values = Media:HashTable("font"),
+				get = function() return settings.groups[name].font end,
+				set = function(_, value)
+					settings.groups[name].font = value
+					FSCD:RebuildDisplay(name)
+				end
+			},
+			texture = {
+				order = 18,
 				name = "Texture",
 				type = "select",
 				width = "double",
@@ -847,6 +874,7 @@ function FSCD:CreateCooldownBar(icon, group)
 	text:SetPoint("LEFT", wrapper, "LEFT", 2, 0)
 	text:SetPoint("RIGHT", wrapper, "RIGHT", -35, 0)
 	text:SetWordWrap(false)
+	wrapper.text = text
 	
 	local time = bar:CreateFontString()
 	time:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
@@ -855,6 +883,7 @@ function FSCD:CreateCooldownBar(icon, group)
 	time:SetTextColor(1, 1, 1, 1)
 	time:SetPoint("LEFT", text, "RIGHT", 2, 0)
 	time:SetPoint("RIGHT", wrapper, "RIGHT", 0, 0)
+	wrapper.time = time
 	
 	function wrapper:SetData(data)
 		wrapper.data = data
@@ -1040,6 +1069,8 @@ function FSCD:RebuildDisplay(name)
 					end
 					
 					bar.bar:SetStatusBarTexture(Media:Fetch("statusbar", group.texture))
+					bar.text:SetFont(Media:Fetch("font", group.font), group.font_size, "OUTLINE")
+					bar.time:SetFont(Media:Fetch("font", group.font), group.font_size, "OUTLINE")
 					bar:Show()
 					bar:SetData(data)
 					
