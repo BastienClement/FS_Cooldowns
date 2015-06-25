@@ -1,5 +1,5 @@
 local LGIST = LibStub:GetLibrary("LibGroupInSpecT-1.1")
-local FSCD  = LibStub("AceAddon-3.0"):NewAddon("FSCooldowns", "AceEvent-3.0", "AceConsole-3.0")
+local FSCD  = LibStub("AceAddon-3.0"):NewAddon("FSCooldowns", "AceEvent-3.0", "AceConsole-3.0", "AceComm-3.0")
 local Media = LibStub("LibSharedMedia-3.0")
 
 --------------------------------------------------------------------------------
@@ -384,6 +384,8 @@ function FSCD:OnInitialize()
 	
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("ENCOUNTER_END")
+	
+	self:RegisterComm("FSCD", "OnCommReceived")
 	
 	C_Timer.NewTicker(2, function()
 		local one_changed = false
@@ -1253,35 +1255,56 @@ local function handleCharge(cd)
 	end
 end
 
+local castDebounce = {}
+local function spellCasted(source, id, broadcast)
+	local now = GetTime()
+	if castDebounce[source] and (now - castDebounce[source]) < 0.5 then
+		return
+	else
+		castDebounce[source] = now
+	end
+	
+	local instances = cooldowns_idx[id]
+	if instances then
+		for _, cd in ipairs(instances) do
+			if cd.player.guid == source then
+				local now = GetTime()
+				
+				modCharges(cd, 1)
+				cd.cast = now
+				cd.duration = now + cd:Evaluate("duration", 1.5)
+				
+				if cd.used == 1 then
+					cd.cooldown = now + cd:Evaluate("cooldown", 15)
+					if cd.timer then cd.timer:Cancel() end
+					cd.timer = C_Timer.NewTimer(cd.cooldown - now, handleCharge(cd))
+				end
+				
+				C_Timer.After(cd.duration - now, function()
+					FSCD:RefreshCooldown(cd.id)
+				end)
+				
+				FSCD:RefreshCooldown(cd.id)
+				
+				if broadcast then
+					broadcast:SendCommMessage("FSCD", source .. ":" .. id, "RAID")
+				end
+				return
+			end
+		end
+	end
+end
+
+function FSCD:OnCommReceived(chan, data)
+	if chan ~= "FSCD" then return end
+	local source, id = data:match("(.*):(.*)")
+	spellCasted(source, id)
+end
+
 local PLAYER_GUID = UnitGUID("player")
 function FSCD:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, _, source, _, _, dest, _, _, _, _, id)
 	if event == "SPELL_CAST_SUCCESS" then
-		local instances = cooldowns_idx[id]
-		
-		if instances then
-			for _, cd in ipairs(instances) do
-				if cd.player.guid == source then
-					local now = GetTime()
-					
-					modCharges(cd, 1)
-					cd.cast = now
-					cd.duration = now + cd:Evaluate("duration", 1.5)
-					
-					if cd.used == 1 then
-						cd.cooldown = now + cd:Evaluate("cooldown", 15)
-						if cd.timer then cd.timer:Cancel() end
-						cd.timer = C_Timer.NewTimer(cd.cooldown - now, handleCharge(cd))
-					end
-					
-					C_Timer.After(cd.duration - now, function()
-						FSCD:RefreshCooldown(cd.id)
-					end)
-					
-					FSCD:RefreshCooldown(cd.id)
-					return
-				end
-			end
-		end
+		spellCasted(source, id, self)
 	end
 end
 
