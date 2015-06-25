@@ -79,6 +79,7 @@ local cooldowns = {
 		end,
 		spec = 65,
 		class = 2,
+		reset_on_wipe = true,
 		order = getOrder()
 	},
 	[6940] = { -- Hand of Sacrifice
@@ -1286,7 +1287,7 @@ end
 
 function FSCD:ENCOUNTER_END()
 	for id, instances in pairs(cooldowns_idx) do
-		if cooldowns[id]:Evaluate("cooldown", 0) >= 180 then
+		if cooldowns[id].reset_on_wipe or cooldowns[id].cooldown >= 180 then
 			for i, cd in ipairs(instances) do
 				cd.used = 0
 				cd.cast = 0
