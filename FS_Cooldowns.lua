@@ -1256,12 +1256,13 @@ local function handleCharge(cd)
 end
 
 local castDebounce = {}
-local function spellCasted(source, id, broadcast)
+local function spellCasted(source, dest, id, broadcast)
 	local now = GetTime()
-	if castDebounce[source] and (now - castDebounce[source]) < 0.5 then
+	local debounce_key = source .. ":" .. dest .. ":" .. id
+	if castDebounce[debounce_key] and (now - castDebounce[debounce_key]) < 0.75 then
 		return
 	else
-		castDebounce[source] = now
+		castDebounce[debounce_key] = now
 	end
 	
 	local instances = cooldowns_idx[id]
@@ -1287,7 +1288,7 @@ local function spellCasted(source, id, broadcast)
 				FSCD:RefreshCooldown(cd.id)
 				
 				if broadcast then
-					broadcast:SendCommMessage("FSCD", source .. ":" .. id, "RAID")
+					broadcast:SendCommMessage("FSCD", debounce_key, "RAID")
 				end
 				return
 			end
@@ -1297,18 +1298,20 @@ end
 
 function FSCD:OnCommReceived(chan, data)
 	if chan ~= "FSCD" then return end
-	local source, id = data:match("(.*):(.*)")
-	spellCasted(source, id)
+	local source, dest, id = data:match("(.*):(.*):(.*)")
+	if not id then return end
+	spellCasted(source, dest, id)
 end
 
 local PLAYER_GUID = UnitGUID("player")
-function FSCD:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, _, source, _, _, dest, _, _, _, _, id)
-	if event == "SPELL_CAST_SUCCESS" then
-		spellCasted(source, id, self)
+function FSCD:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, _, source, _, _, _, dest, _, _, _, id)
+if event == "SPELL_CAST_SUCCESS" then
+		spellCasted(source, dest, id, self)
 	end
 end
 
 function FSCD:ENCOUNTER_END()
+	wipe(castDebounce)
 	for id, instances in pairs(cooldowns_idx) do
 		if cooldowns[id].reset_on_wipe or cooldowns[id].cooldown >= 180 then
 			for i, cd in ipairs(instances) do
