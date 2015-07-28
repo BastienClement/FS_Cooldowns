@@ -295,13 +295,23 @@ local cooldowns = {
 		class = 3,
 		order = getOrder()
 	},]]
+	
+-- Legendary rings
+	["legendary_rings"] = {
+		special = true,
+		cooldown = 120,
+		duration = 15,
+		icon = select(3, GetSpellInfo(187612)),
+		color = { 100/255, 150/255, 200/255 },
+		order = getOrder()
+	},
 }
 
 --------------------------------------------------------------------------------
 
 local cooldowns_list = {}
 do
-	for id in pairs(cooldowns) do
+	for id, infos in pairs(cooldowns) do
 		table.insert(cooldowns_list, id)
 	end
 	table.sort(cooldowns_list, function(a, b)
@@ -384,6 +394,7 @@ function FSCD:OnInitialize()
 	
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("ENCOUNTER_END")
+	self:RegisterEvent("PLAYER_LOGIN")
 	
 	self:RegisterComm("FSCD", "OnCommReceived")
 	
@@ -411,6 +422,53 @@ function FSCD:OnInitialize()
 	end
 	
 	self:RebuildAllDisplays()
+end
+
+function FSCD:PLAYER_LOGIN()
+	local key = "legendary_rings"
+	local rings = cooldowns[key]
+	
+	local dps_ring_names = {
+		[1] = "Thorasus",
+		[2] = "Thorasus",
+		[3] = "Maalus",
+		[4] = "Maalus",
+		[5] = "Nithramus",
+		[6] = "Thorasus",
+		[7] = GetSpecialization() == 2 and "Maalus" or "Nithramus",
+		[8] = "Nithramus",
+		[9] = "Nithramus",
+		[10] = "Maalus",
+		[11] = (GetSpecialization() == 2 or GetSpecialization() == 3) and "Maalus" or "Nithramus",
+	}
+	
+	local dps_name = dps_ring_names[select(3, UnitClass("player"))]
+	
+	local hallows = { name = dps_name, ring_name = dps_name, guid = "Hallows", order = 1 }
+	roster["Hallows"] = {
+		player = hallows,
+		cooldowns = {
+			[key] = self:CreatePlayerCooldown(hallows, rings, key)
+		}
+	}
+	
+	local sanctus = { name = "Sanctus", ring_name = "Sanctus", guid = "Sanctus", order = 2 }
+	roster["Sanctus"] = {
+		player = sanctus,
+		cooldowns = {
+			[key] = self:CreatePlayerCooldown(sanctus, rings, key)
+		}
+	}
+	
+	local etheralus = { name = "Etheralus", ring_name = "Etheralus", guid = "Etheralus" , order = 3 }
+	roster["Etheralus"] = {
+		player = etheralus,
+		cooldowns = {
+			[key] = self:CreatePlayerCooldown(etheralus, rings, key)
+		}
+	}
+	
+	self:RebuildIndex()
 end
 
 function FSCD:OnProfileChanged()
@@ -660,28 +718,51 @@ function FSCD:CreateDisplayGroup(name)
 		}
 	}
 	
+	local last_order
 	for _, id in ipairs(cooldowns_list) do
-		local spell, _, icon = GetSpellInfo(id)
-		local desc, icon_texture
-		if spell then
-			desc = GetSpellDescription(id) .. "\n|cff999999" .. id .. "|r"
-			icon_texture = "|T" .. icon .. ":21|t"
-		else
-			spell = "Spell#" .. id
-			icon_texture = ""
+		if not cooldowns[id].special then
+			local spell, _, icon = GetSpellInfo(id)
+			local desc, icon_texture
+			if spell then
+				desc = GetSpellDescription(id) .. "\n|cff999999" .. id .. "|r"
+				icon_texture = "|T" .. icon .. ":21|t"
+			else
+				spell = "Spell#" .. id
+				icon_texture = ""
+			end
+			
+			local cd_data = cooldowns[id]
+			last_order = 1000 + cd_data.order * 10
+			
+			group.args["Spell" .. id] = {
+				order = last_order,
+				name = icon_texture .. " |cff" .. (cd_data.class and class_colors[cd_data.class][4] or "ffffff") .. spell .. "|h|r",
+				desc = desc,
+				type = "toggle",
+				get = function()
+					return settings.groups[name].cooldowns[id]
+				end,
+				set = function(_, enabled)
+					settings.groups[name].cooldowns[id] = enabled and true or nil
+					FSCD:RebuildDisplay(name)
+				end
+			}
 		end
-		
-		local cd_data = cooldowns[id]
-		group.args["Spell" .. id] = {
-			order = 1000 + cd_data.order * 10,
-			name = icon_texture .. " |cff" .. class_colors[cd_data.class][4] .. spell .. "|h|r",
-			desc = desc,
+	end
+	
+	do
+		local spell, _, icon = GetSpellInfo(187612)
+		local icon_texture = "|T" .. icon .. ":21|t"
+		group.args["LegendaryRings"] = {
+			order = last_order + 1,
+			name = icon_texture .. " |cffff8000Legendary rings|h|r",
+			desc = "Tracks legendary rings usage and cooldown",
 			type = "toggle",
 			get = function()
-				return settings.groups[name].cooldowns[id]
+				return settings.groups[name].cooldowns["legendary_rings"]
 			end,
 			set = function(_, enabled)
-				settings.groups[name].cooldowns[id] = enabled and true or nil
+				settings.groups[name].cooldowns["legendary_rings"] = enabled and true or nil
 				FSCD:RebuildDisplay(name)
 			end
 		}
@@ -732,7 +813,7 @@ function FSCD:RemoveDisplayGroup(name, leave_config)
 end
 
 function FSCD:PlayerHasCooldown(player, spell)
-	if spell.class and player.class_id ~= spell.class then
+	if spell.special or (spell.class and player.class_id ~= spell.class) then
 		return false
 	end
 	
@@ -816,7 +897,7 @@ function FSCD:CreateCooldownIcon(anchor, id)
 	icon.back = back
 	
 	local tex = icon:CreateTexture(nil, "MEDIUM")
-	tex:SetTexture(select(3, GetSpellInfo(id)))
+	tex:SetTexture(cooldowns[id].icon or select(3, GetSpellInfo(id)))
 	tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	icon.tex = tex
 	
@@ -843,7 +924,12 @@ function FSCD:CreateCooldownIcon(anchor, id)
 			icon.back:SetVertexColor(0.5, 0.5, 0.5, 1)
 		else
 			icon.tex:SetDesaturated()
-			local r, g, b = unpack(class_colors[cooldowns[id].class])
+			local r, g, b
+			if cooldowns[id].color then
+				r, g, b = unpack(cooldowns[id].color)
+			else
+				r, g, b = unpack(class_colors[cooldowns[id].class])
+			end
 			icon.back:SetVertexColor(r, g, b, 1)
 		end
 	end
@@ -930,7 +1016,13 @@ function FSCD:CreateCooldownBar(icon, group)
 	
 	function wrapper:Update()
 		local cd = wrapper.data
-		local r, g, b = unpack(class_colors[cd.template.class])
+		
+		local r, g, b
+		if cd.template.color then
+			r, g, b = unpack(cd.template.color)
+		else
+			r, g, b = unpack(class_colors[cd.template.class])
+		end
 		
 		local max_charges = cd:Evaluate("charges", 1)
 		
@@ -950,7 +1042,7 @@ function FSCD:CreateCooldownBar(icon, group)
 			color_ratio = 2
 			animating = true
 			animate_duration = true
-		elseif not players_available[cd.player.name] then
+		elseif not players_available[cd.player.name] and not cd.template.special then
 			color_ratio = 0.2
 			wrapper:SetAlpha(0.4)
 		elseif cd.cooldown > GetTime() then
@@ -1117,6 +1209,10 @@ end
 --------------------------------------------------------------------------------
 
 local function sortCooldowns(a, b)
+	if a.player.order and b.player.order then
+		return a.player.order < b.player.order
+	end
+
 	local now = GetTime()
 	local aActive, bActive = now < a.duration, now < b.duration
 	
@@ -1202,7 +1298,7 @@ end
 
 function FSCD:RosterUpdate(_, guid, _, player)
 	local rpl = roster[guid] or {}
-	local cds = self:PlayerCooldowns(player);
+	local cds = self:PlayerCooldowns(player)
 	
 	if rpl.cooldowns then
 		for id, cd in pairs(rpl.cooldowns) do
@@ -1256,20 +1352,34 @@ local function handleCharge(cd)
 end
 
 local castDebounce = {}
+local legendary_rings_ids = {
+	[187611] = "Hallows", -- Nithramus
+	[187612] = "Etheralus",
+	[187613] = "Sanctus",
+	[187614] = "Hallows", -- Thorasus
+	[187615] = "Hallows", -- Maalus
+}
+
 local function spellCasted(source, dest, id, broadcast)
-	local now = GetTime()
-	local debounce_key = source .. ":" .. dest .. ":" .. id
-	if castDebounce[debounce_key] and (now - castDebounce[debounce_key]) < 0.75 then
-		return
-	else
-		castDebounce[debounce_key] = now
-	end
+	local ring_name = legendary_rings_ids[id] or false
+	local instances = cooldowns_idx[ring_name and "legendary_rings" or id]
 	
-	local instances = cooldowns_idx[id]
 	if instances then
+		local now = GetTime()
+		local debounce_key = source .. ":" .. dest .. ":" .. id
+		if castDebounce[debounce_key] and (now - castDebounce[debounce_key]) < 0.75 then
+			return
+		else
+			castDebounce[debounce_key] = now
+		end
+			
 		for _, cd in ipairs(instances) do
-			if cd.player.guid == source then
+			if cd.player.guid == source or cd.player.guid == ring_name then
 				local now = GetTime()
+				
+				if ring_name then
+					cd.player.name = select(6, GetPlayerInfoByGUID(source))
+				end
 				
 				modCharges(cd, 1)
 				cd.cast = now
@@ -1282,6 +1392,7 @@ local function spellCasted(source, dest, id, broadcast)
 				end
 				
 				C_Timer.After(cd.duration - now, function()
+					if ring_name then cd.player.name = cd.player.ring_name end
 					FSCD:RefreshCooldown(cd.id)
 				end)
 				
