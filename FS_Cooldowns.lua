@@ -2,6 +2,8 @@ local LGIST = LibStub:GetLibrary("LibGroupInSpecT-1.1")
 local FSCD  = LibStub("AceAddon-3.0"):NewAddon("FSCooldowns", "AceEvent-3.0", "AceConsole-3.0", "AceComm-3.0")
 local Media = LibStub("LibSharedMedia-3.0")
 
+FSCD.version = "@project-version@"
+
 --------------------------------------------------------------------------------
 
 local function dump(t)
@@ -422,6 +424,31 @@ function FSCD:OnInitialize()
 	end
 	
 	self:RebuildAllDisplays()
+	
+	if FS and FS.Config then
+		FS.Config:Register("Cooldowns", {
+			title = {
+				type = "description",
+				name = "Cooldowns tracker",
+				fontSize = "large",
+				order = 0,
+			},
+			desc = {
+				type = "description",
+				name = "Tracks raid cooldown and legendary rings usage.",
+				fontSize = "medium",
+				order = 1,
+			},
+			version = {
+				type = "description",
+				name = "\n|cffffd100FS Cooldowns version: |r" .. FSCD.version,
+				fontSize = "small",
+				order = 2,
+			},
+			groups = config.args.groups,
+			profiles = config.args.profiles
+		})
+	end
 end
 
 function FSCD:PLAYER_LOGIN()

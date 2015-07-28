@@ -3,7 +3,7 @@
 ## Notes: Raid cooldowns tracker
 ## Author: Blash
 ## SavedVariables: FSCooldownsSettings
-## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibGroupInSpecT-1.1, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets
+## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibGroupInSpecT-1.1, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets, FS_Core
 
 #@no-lib-strip@
 LibStub\LibStub.lua
