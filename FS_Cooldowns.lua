@@ -377,7 +377,7 @@ local config = {
 	}
 }
 
-LibStub("AceConfig-3.0"):RegisterOptionsTable("FS Cooldowns", config, "fsrc")
+LibStub("AceConfig-3.0"):RegisterOptionsTable("FS Cooldowns", config)
 
 function FSCD:OnInitialize()
 	LGIST.RegisterCallback(self, "GroupInSpecT_Update", "RosterUpdate")
@@ -429,7 +429,7 @@ function FSCD:OnInitialize()
 		FS.Config:Register("Cooldowns", {
 			title = {
 				type = "description",
-				name = "Cooldowns tracker",
+				name = "|cff64b4ffCooldowns tracker",
 				fontSize = "large",
 				order = 0,
 			},
