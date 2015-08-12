@@ -1404,8 +1404,10 @@ local function spellCasted(source, dest, id, broadcast)
 			if cd.player.guid == source or cd.player.guid == ring_name then
 				local now = GetTime()
 				
+				local caster_name
 				if ring_name then
-					cd.player.name = select(6, GetPlayerInfoByGUID(source))
+					caster_name = select(6, GetPlayerInfoByGUID(source))
+					cd.player.name = caster_name
 				end
 				
 				modCharges(cd, 1)
@@ -1418,12 +1420,20 @@ local function spellCasted(source, dest, id, broadcast)
 					cd.timer = C_Timer.NewTimer(cd.cooldown - now, handleCharge(cd))
 				end
 				
+				FSCD:RefreshCooldown(cd.id)
+				
 				C_Timer.After(cd.duration - now, function()
-					if ring_name then cd.player.name = cd.player.ring_name end
 					FSCD:RefreshCooldown(cd.id)
 				end)
 				
-				FSCD:RefreshCooldown(cd.id)
+				if ring_name then
+					C_Timer.After(cd.cooldown - now, function()
+						if cd.player.name == caster_name then
+							cd.player.name = cd.player.ring_name
+						end
+						FSCD:RefreshCooldown(cd.id)
+					end)
+				end
 				
 				if broadcast then
 					broadcast:SendCommMessage("FSCD", debounce_key, "RAID")
